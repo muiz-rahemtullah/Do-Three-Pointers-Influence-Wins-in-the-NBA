@@ -1,7 +1,7 @@
 # Do-Three-Pointers-Influence-Wins-in-the-NBA
 
 When watching NBA Basketball in this era, we observe teams attempting to play at a very fast pace, and focusing on three types 
-of shots specifically and these are 
+of shots specifically and these are:
 
 -Free Throws
 

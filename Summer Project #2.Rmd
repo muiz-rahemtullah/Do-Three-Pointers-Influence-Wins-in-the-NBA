@@ -1,0 +1,105 @@
+---
+title: "Is There A Connection Between 3-Pointers and Wins?"
+author: "Muiz Rahemtullah"
+date: "6/27/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Introduction
+Over recent years, the use of data analytics has been very influential in professional sports. One such example is in basketball. In the past few years, it has been determined by NBA analysts that the only shots worth atempting are free throws, shots in the paint, and most importantly, three pointers. It would then make sense to examine how adapting to this style of basketball impacts the number of wins a team earns during the regular season. In this project, we will examine if there is a connection between the Houston Rockets Wins and their 3 pointer statistics, specifically the number of 3 pointers attempted and the percentage of 3 point field goals made. We want to see whether or not a high 3 point statistics influence and cause more wins. To do this, we will use a Vector Autoregression (VAR) model. As mentioned before, we will look at three variables: The Number of Wins, 3 pointers attempted, and percentage of 3 pointers made. The VAR model will see how much of these present value of these variables are dependant on the past values of these variables. 
+
+##Results
+First we will set our working directory.
+```{r}
+setwd("~/Desktop/Summer Project #2")
+```
+
+Now we will load in our libraries.
+```{r}
+library(lattice)
+library(foreign)
+library(MASS)
+library(car)
+require(stats)
+require(stats4)
+library(KernSmooth)
+library(fastICA)
+library(cluster)
+library(leaps)
+library(mgcv)
+library(rpart)
+library(pan)
+library(mgcv)
+library(DAAG)
+library("TTR")
+library(tis)
+require("datasets")
+require(graphics)
+library("forecast")
+#install.packages("astsa")
+#require(astsa)
+library(nlstools)
+library(fpp)
+library(strucchange)
+library(Quandl)
+library(zoo)
+library(PerformanceAnalytics)
+library(quantmod)
+#library(stockPortfolio)
+library(vars)
+library(lmtest)
+library(dlnm)
+library(hts)
+library(tseries)
+library(rugarch)
+```
+
+Now we will load in our data.
+```{r}
+library(readxl)
+wins_and_threes <- read_excel("Summer Project #2 Data.xlsx")
+View(wins_and_threes)
+```
+
+Now we will construct a VAR model using the data.
+```{r}
+library(vars)
+library(VAR.etp)
+wins_ts <- ts(wins_and_threes$W, start = 1980, frequency = 1)
+three_ts <- ts(wins_and_threes$`3PA`, start = 1980, frequency = 1)
+three_pct_ts <- ts(wins_and_threes$`3P%`, start = 1980, frequency = 1)
+y = cbind(wins_ts, three_ts, three_pct_ts)
+y_updated <- y[1:39,]
+y_tot = data.frame(y_updated)
+```
+
+Now that we have constructed the VAR Model, its time to examine which order to choose. The order determines how many lagged variables to put in our model. For example, a VAR(1) model would include the first lagged terms, in this case the previous seasons number of wins, three pointers attempted, and three point percentage. The VARselect function gives us an idea on which order to select. We want to minimize the BIC (SC) value.
+```{r}
+VARselect(y_tot, lag.max = 5)
+```
+
+The BIC or SC is minimized at order 1, hence we will use a VAR(1) model.
+```{r}
+y_model <- VAR(y_tot, p = 1)
+summary(y_model)
+```
+
+Now we need to see if three pointers cause wins.
+```{r}
+grangertest(wins_ts~three_pct_ts, order = 1)
+grangertest(wins_ts~three_ts, order = 1)
+```
+
+We see that three pointers attempted influence wins at the 10% significance level. Hence three pointers do cause wins.
+
+##Conclusion
+NBA Analysts seem to really value the three pointer and using our model, we are able to confirm that the three pointer is indeed an important aspect of winning. The number of threes we attempt influence the number of regular season wins. To win more, we must attempt more three pointers.
+
+##References
+"Houston Rockets Stats-Basic (Totals)", basketball-reference.com, Sports Reference, https://www.basketball-reference.com/teams/HOU/stats_basic_totals.html 
